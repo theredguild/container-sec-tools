@@ -4,19 +4,28 @@ on:
     branches:
       - main
       - develop
-    paths:
-      - Dockerfile
   pull_request:
     branches:
       - main
       - develop
-    paths:
-      - Dockerfile
 
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
     steps:
+      # This step takes ages (~4-5 min) but frees around 20 additional gigabytes
+      # that are quite useful when installing and running everything.
+      - name: Free up some disk space
+        uses: jlumbroso/free-disk-space@main
+        with:
+          tool-cache: false
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: false
+          swap-storage: false
+          docker-images: false
+
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -27,3 +36,6 @@ jobs:
         run: make build
         env:
           DOCKER_BUILDKIT: 1
+
+      - name: Check disk space
+        run: df -h

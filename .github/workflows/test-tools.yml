@@ -32,10 +32,21 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build container using Make
-        run: make build
-        env:
-          DOCKER_BUILDKIT: 1
+      - name: Load .env file and set build-args
+        id: load-env
+        run: |
+          build_args=$(awk -F= '{print "--build-arg", $1"="$2}' .env | tr '\n' ' ')
+          echo "build_args=$build_args" >> $GITHUB_ENV
+
+      - name: Build container
+        uses: docker/build-push-action@v6
+        with:
+          push: false
+          context: .
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          tags: theredguild/container-sec-tools:latest
+          build-args: ${{ env.build_args }}
 
       - name: Check disk space
         run: df -h
